@@ -77,7 +77,7 @@ public class Sanitizer : ISanitizer
         var sanitizedString = FilterUnprintableCharacters(unsanitizedString);
         return clientLanguage switch
         {
-            ClientLanguage.Japanese or ClientLanguage.English => sanitizedString,
+            ClientLanguage.Japanese or ClientLanguage.English or ClientLanguage.Korean => sanitizedString,
             ClientLanguage.German => FilterByDict(sanitizedString, DESanitizationDict),
             ClientLanguage.French => FilterByDict(sanitizedString, FRSanitizationDict),
             _ => throw new ArgumentOutOfRangeException(nameof(clientLanguage), clientLanguage, null),
@@ -90,6 +90,7 @@ public class Sanitizer : ISanitizer
         {
             ClientLanguage.Japanese => unsanitizedStrings.Select(FilterUnprintableCharacters),
             ClientLanguage.English => unsanitizedStrings.Select(FilterUnprintableCharacters),
+            ClientLanguage.Korean => unsanitizedStrings.Select(FilterUnprintableCharacters),
             ClientLanguage.German => unsanitizedStrings.Select(original => FilterByDict(FilterUnprintableCharacters(original), DESanitizationDict)),
             ClientLanguage.French => unsanitizedStrings.Select(original => FilterByDict(FilterUnprintableCharacters(original), FRSanitizationDict)),
             _ => throw new ArgumentOutOfRangeException(nameof(clientLanguage), clientLanguage, null),
