@@ -1,5 +1,8 @@
 name: Build Dalamud
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    tags:
+      - '*'
 concurrency:
   group: build_dalamud_${{ github.ref_name }}
   cancel-in-progress: true
@@ -17,6 +20,7 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.0.2
       - name: Define VERSION
+        id: define_version
         run: |
           $env:COMMIT = $env:GITHUB_SHA.Substring(0, 7)
           $env:REPO_NAME = $env:GITHUB_REPOSITORY -replace '.*/'
@@ -29,85 +33,37 @@ jobs:
         run: .\build.ps1 compile
       - name: Test Dalamud
         run: .\build.ps1 test
-      - name: Sign Dalamud
-        if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
-        env:
-          CODESIGN_CERT_PFX: ${{ secrets.CODESIGN_CERT_PFX }}
-          CODESIGN_CERT_PASSWORD: ${{ secrets.CODESIGN_CERT_PASSWORD }}
-        run: .\sign.ps1 .\bin\Release
       - name: Create hashlist
         run: .\CreateHashList.ps1 .\bin\Release
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: dalamud-artifact
-          path: bin\Release
-  
-  deploy_stg:
-    name: Deploy dalamud-distrib staging
-    if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
-    needs: build
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        repository: goatcorp/dalamud-distrib
-        token: ${{ secrets.UPDATE_PAT }}
-    - uses: actions/download-artifact@v2
-      with:
-        name: dalamud-artifact
-        path: .\scratch
-
-    - name: Extract branch name
-      shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-      id: extract_branch
-
-    - name: Generate dalamud-distrib version file
-      shell: pwsh
-      env:
-        GH_BRANCH: ${{ steps.extract_branch.outputs.branch }}
-      run: |
-        Compress-Archive .\scratch\* .\canary.zip  # Recreate the release zip
-        
-        $branchName = $env:GH_BRANCH
-        
-        if ($branchName -eq "master") {
-          $branchName = "stg"
-        }
-        
-        $newVersion = [System.IO.File]::ReadAllText("$(Get-Location)\scratch\TEMP_gitver.txt")
-        $revision = [System.IO.File]::ReadAllText("$(Get-Location)\scratch\revision.txt")
-        Remove-Item -Force -Recurse .\scratch
-        
-        if (Test-Path -Path $branchName) {
-            $versionData = Get-Content ".\${branchName}\version" | ConvertFrom-Json
-            $oldVersion = $versionData.AssemblyVersion
-            if ($oldVersion -eq $newVersion) {
-              Remove-Item .\canary.zip
-            } else {
-              Move-Item -Force ".\canary.zip" ".\${branchName}\latest.zip"
-              $versionData.AssemblyVersion = $newVersion
-              $versionData | add-member -Force -Name "GitSha" $newVersion -MemberType NoteProperty
-              $versionData | add-member -Force -Name "Revision" $revision -MemberType NoteProperty
-              $versionData | ConvertTo-Json -Compress | Out-File ".\${branchName}\version"
-            }
-
-            echo "DVER=${newVersion}" >> $Env:GITHUB_ENV
-        } else {
-            Write-Host "Deployment folder doesn't exist. Not doing anything."
-            Remove-Item .\canary.zip
-        }
-        
-    - name: Commit changes
-      shell: bash
-      env:
-        GH_BRANCH: ${{ steps.extract_branch.outputs.branch }}
-      run: |
-        git config --global user.name "Actions User"
-        git config --global user.email "actions@github.com"
-        
-        git add .
-        git commit -m "[CI] Update staging for ${DVER} on ${GH_BRANCH}" || true
-        
-        git push origin main || true
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: ""
+          prerelease: true
+      - name: Zip Artifacts
+        shell: pwsh
+        run: |
+          Compress-Archive .\bin\Release\* .\dalamud.zip
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dalamud.zip
+          asset_name: dalamud.zip
+          asset_content_type: application/zip
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./VERSION
+          asset_name: VERSION
+          asset_content_type: text/plain
