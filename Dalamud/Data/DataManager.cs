@@ -13,6 +13,8 @@ using JetBrains.Annotations;
 using Lumina;
 using Lumina.Data;
 using Lumina.Excel;
+using Lumina.Excel.GeneratedSheets;
+using Lumina.Text;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -104,6 +106,7 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
                 }
             });
             this.luminaResourceThread.Start();
+            this.ChangeWorldForKR();
         }
         catch (Exception ex)
         {
@@ -127,6 +130,44 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
     /// Gets a value indicating whether Game Data is ready to be read.
     /// </summary>
     internal bool IsDataReady { get; private set; }
+
+    /// <summary>
+    /// Gets the Korean server list.
+    /// </summary>
+    private void ChangeWorldForKR()
+    {
+        var koreanWorldDCGroups = new[]
+        {
+            new
+            {
+                Name = "한국",
+                Id = 0u,
+                Worlds = new[]
+                {
+                    new { Id = 2075u, Name = "카벙클" },
+                    new { Id = 2076u, Name = "초코보" },
+                    new { Id = 2077u, Name = "모그리" },
+                    new { Id = 2078u, Name = "톤베리" },
+                    new { Id = 2080u, Name = "펜리르" },
+                },
+            },
+        };
+        var dcExcel = this.GameData.Excel.GetSheet<WorldDCGroupType>();
+        var worldExcel = this.GameData.Excel.GetSheet<World>();
+        foreach (var dc in koreanWorldDCGroups)
+        {
+            var dcToReplaced = dcExcel.GetRow(dc.Id);
+            dcToReplaced.Name = new SeString(dc.Name);
+            dcToReplaced.Region = 3;
+
+            foreach (var world in dc.Worlds)
+            {
+                var worldToUpdated = worldExcel.GetRow(world.Id);
+                worldToUpdated.IsPublic = true;
+                worldToUpdated.DataCenter = new LazyRow<WorldDCGroupType>(this.GameData, dc.Id, Lumina.Data.Language.Korean);
+            }
+        }
+    }
 
     #region Lumina Wrappers
 
