@@ -255,6 +255,7 @@ public sealed class DataManager : IDisposable, IServiceType
             ClientLanguage.English => "en/",
             ClientLanguage.German => "de/",
             ClientLanguage.French => "fr/",
+            ClientLanguage.Korean => "ko/",
             _ => throw new ArgumentOutOfRangeException(nameof(iconLanguage), $"Unknown Language: {iconLanguage}"),
         };
 
