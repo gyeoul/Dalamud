@@ -674,32 +674,18 @@ internal class PluginImageCache : IDisposable, IServiceType
 
     private string? GetPluginIconUrl(IPluginManifest manifest, bool isThirdParty, bool isTesting)
     {
-        if (isThirdParty)
-            return manifest.IconUrl;
-
-        return MainRepoDip17ImageUrl.Format(manifest.Dip17Channel!, manifest.InternalName, "icon.png");
+        return manifest.IconUrl;
     }
 
     private List<string?>? GetPluginImageUrls(IPluginManifest manifest, bool isThirdParty, bool isTesting)
     {
-        if (isThirdParty)
+        if (manifest.ImageUrls?.Count > 5)
         {
-            if (manifest.ImageUrls?.Count > 5)
-            {
-                Log.Warning($"Plugin {manifest.InternalName} has too many images");
-                return manifest.ImageUrls.Take(5).ToList();
-            }
-
-            return manifest.ImageUrls;
+            Log.Warning($"Plugin {manifest.InternalName} has too many images");
+            return manifest.ImageUrls.Take(5).ToList();
         }
-
-        var output = new List<string>();
-        for (var i = 1; i <= 5; i++)
-        {
-            output.Add(MainRepoDip17ImageUrl.Format(manifest.Dip17Channel!, manifest.InternalName, $"image{i}.png"));
-        }
-
-        return output;
+        
+        return manifest.ImageUrls;
     }
 
     private FileInfo? GetPluginIconFileInfo(LocalPlugin? plugin)
