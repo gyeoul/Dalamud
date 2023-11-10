@@ -24,20 +24,38 @@ namespace Dalamud.Interface.GameFonts;
 [ServiceManager.EarlyLoadedService]
 internal class GameFontManager : IServiceType
 {
-    private static readonly string?[] FontNames =
+    private static readonly Dictionary<GameFontFamilyAndSize, Tuple<string, string>> FontSet = new()
     {
-        null,
-        "AXIS_96", "AXIS_12", "AXIS_14", "AXIS_18", "AXIS_36",
-        "Jupiter_16", "Jupiter_20", "Jupiter_23", "Jupiter_45", "Jupiter_46", "Jupiter_90",
-        "Meidinger_16", "Meidinger_20", "Meidinger_40",
-        "MiedingerMid_10", "MiedingerMid_12", "MiedingerMid_14", "MiedingerMid_18", "MiedingerMid_36",
-        "TrumpGothic_184", "TrumpGothic_23", "TrumpGothic_34", "TrumpGothic_68",
+        { GameFontFamilyAndSize.Axis96,         Tuple.Create("KrnAXIS_120.fdt",     "font_krn_{0}.tex") },
+        { GameFontFamilyAndSize.Axis12,         Tuple.Create("KrnAXIS_120.fdt",     "font_krn_{0}.tex") },
+        { GameFontFamilyAndSize.Axis14,         Tuple.Create("KrnAXIS_140.fdt",     "font_krn_{0}.tex") },
+        { GameFontFamilyAndSize.Axis18,         Tuple.Create("KrnAXIS_180.fdt",     "font_krn_{0}.tex") },
+        { GameFontFamilyAndSize.Axis36,         Tuple.Create("KrnAXIS_360.fdt",     "font_krn_{0}.tex") },
+        { GameFontFamilyAndSize.Jupiter16,      Tuple.Create("Jupiter_16.fdt",      "font{0}.tex") },
+        { GameFontFamilyAndSize.Jupiter20,      Tuple.Create("Jupiter_20.fdt",      "font{0}.tex") },
+        { GameFontFamilyAndSize.Jupiter23,      Tuple.Create("Jupiter_23.fdt",      "font{0}.tex") },
+        { GameFontFamilyAndSize.Jupiter45,      Tuple.Create("Jupiter_45.fdt",      "font{0}.tex") },
+        { GameFontFamilyAndSize.Jupiter46,      Tuple.Create("Jupiter_46.fdt",      "font{0}.tex") },
+        { GameFontFamilyAndSize.Jupiter90,      Tuple.Create("Jupiter_90.fdt",      "font{0}.tex") },
+        { GameFontFamilyAndSize.Meidinger16,    Tuple.Create("Meidinger_16.fdt",    "font{0}.tex") },
+        { GameFontFamilyAndSize.Meidinger20,    Tuple.Create("Meidinger_20.fdt",    "font{0}.tex") },
+        { GameFontFamilyAndSize.Meidinger40,    Tuple.Create("Meidinger_40.fdt",    "font{0}.tex") },
+        { GameFontFamilyAndSize.MiedingerMid10, Tuple.Create("MiedingerMid_10.fdt", "font{0}.tex") },
+        { GameFontFamilyAndSize.MiedingerMid12, Tuple.Create("MiedingerMid_12.fdt", "font{0}.tex") },
+        { GameFontFamilyAndSize.MiedingerMid14, Tuple.Create("MiedingerMid_14.fdt", "font{0}.tex") },
+        { GameFontFamilyAndSize.MiedingerMid18, Tuple.Create("MiedingerMid_18.fdt", "font{0}.tex") },
+        { GameFontFamilyAndSize.MiedingerMid36, Tuple.Create("MiedingerMid_36.fdt", "font{0}.tex") },
+        { GameFontFamilyAndSize.TrumpGothic184, Tuple.Create("TrumpGothic_184.fdt", "font{0}.tex") },
+        { GameFontFamilyAndSize.TrumpGothic23,  Tuple.Create("TrumpGothic_23.fdt",  "font{0}.tex") },
+        { GameFontFamilyAndSize.TrumpGothic34,  Tuple.Create("TrumpGothic_34.fdt",  "font{0}.tex") },
+        { GameFontFamilyAndSize.TrumpGothic68,  Tuple.Create("TrumpGothic_68.fdt",  "font{0}.tex") },
     };
+
+    private readonly Dictionary<GameFontFamilyAndSize, FdtReader> fdtMap = new();
+    private readonly Dictionary<string, byte[]> textureMap = new();
 
     private readonly object syncRoot = new();
 
-    private readonly FdtReader?[] fdts;
-    private readonly List<byte[]> texturePixels;
     private readonly Dictionary<GameFontStyle, ImFontPtr> fonts = new();
     private readonly Dictionary<GameFontStyle, int> fontUseCounter = new();
     private readonly Dictionary<GameFontStyle, Dictionary<char, Tuple<int, FdtReader.FontTableEntry>>> glyphRectIds = new();
@@ -51,22 +69,30 @@ internal class GameFontManager : IServiceType
     {
         using (Timings.Start("Getting fdt data"))
         {
-            this.fdts = FontNames.Select(fontName => fontName == null ? null : new FdtReader(dataManager.GetFile($"common/font/{fontName}.fdt")!.Data)).ToArray();
+            foreach (var (font, (fdtFileName, texFileName)) in FontSet) {
+                this.fdtMap[font] = new FdtReader(dataManager.GetFile($"common/font/{fdtFileName}")!.Data);
+            }
         }
 
         using (Timings.Start("Getting texture data"))
         {
-            var texTasks = Enumerable
-                           .Range(1, 1 + this.fdts
-                                             .Where(x => x != null)
-                                             .Select(x => x.Glyphs.Select(y => y.TextureFileIndex).Max())
-                                             .Max())
-                           .Select(x => dataManager.GetFile<TexFile>($"common/font/font{x}.tex")!)
-                           .Select(x => new Task<byte[]>(Timings.AttachTimingHandle(() => x.ImageData!)))
-                           .ToArray();
-            foreach (var task in texTasks)
+            var texTasks = this.fdtMap
+                .SelectMany(x => x.Value.Glyphs.Select(g => string.Format(FontSet[x.Key].Item2, g.TextureFileIndex + 1)))
+                .Distinct()
+                .Select(x => Tuple.Create(x, dataManager.GetFile<TexFile>($"common/font/{x}")!))
+                .Select(x => Tuple.Create(x.Item1, new Task<byte[]>(Timings.AttachTimingHandle(() => x.Item2.ImageData!))))
+                .ToArray();
+
+            foreach (var (texFileName, task) in texTasks)
+            {
                 task.Start();
-            this.texturePixels = texTasks.Select(x => x.GetAwaiter().GetResult()).ToList();
+            }
+
+            foreach (var (texFileName, task) in texTasks)
+            {
+                var pixels = task.GetAwaiter().GetResult();
+                this.textureMap[texFileName] = pixels;
+            }
         }
     }
 
@@ -209,7 +235,7 @@ internal class GameFontManager : IServiceType
     /// </summary>
     /// <param name="family">Font to get.</param>
     /// <returns>Corresponding FdtReader or null.</returns>
-    public FdtReader? GetFdtReader(GameFontFamilyAndSize family) => this.fdts[(int)family];
+    public FdtReader? GetFdtReader(GameFontFamilyAndSize family) => this.fdtMap[family];
 
     /// <summary>
     /// Fills missing glyphs in target font from source font, if both are not null.
@@ -300,7 +326,7 @@ internal class GameFontManager : IServiceType
 
         foreach (var (style, font) in this.fonts)
         {
-            var fdt = this.fdts[(int)style.FamilyAndSize];
+            var fdt = this.fdtMap[style.FamilyAndSize];
             var scale = style.SizePt / fdt.FontHeader.Size;
             var fontPtr = font.NativePtr;
 
@@ -346,7 +372,10 @@ internal class GameFontManager : IServiceType
                 var pixels32 = pixels32s[rc->TextureIndex];
                 var width = widths[rc->TextureIndex];
                 var height = heights[rc->TextureIndex];
-                var sourceBuffer = this.texturePixels[glyph.TextureFileIndex];
+
+                var texFileName = string.Format(FontSet[style.FamilyAndSize].Item2, glyph.TextureFileIndex + 1);
+                var sourceBuffer = this.textureMap[texFileName];
+
                 var sourceBufferDelta = glyph.TextureChannelByteIndex;
                 var widthAdjustment = style.CalculateBaseWidthAdjustment(fdt, glyph);
                 if (widthAdjustment == 0)
@@ -431,9 +460,11 @@ internal class GameFontManager : IServiceType
     {
         var rectIds = this.glyphRectIds[style] = new();
 
-        var fdt = this.fdts[(int)style.FamilyAndSize];
-        if (fdt == null)
+        if (!this.fdtMap.ContainsKey(style.FamilyAndSize)) {
             return;
+        }
+
+        var fdt = this.fdtMap[style.FamilyAndSize];
 
         ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
         fontConfig.OversampleH = 1;
