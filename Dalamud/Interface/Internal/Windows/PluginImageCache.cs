@@ -43,8 +43,8 @@ internal class PluginImageCache : IInternalDisposableService
     /// </summary>
     public const int PluginIconHeight = 512;
 
-    private const string MainRepoImageUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api6/{0}/{1}/images/{2}";
-    private const string MainRepoDip17ImageUrl = "https://raw.githubusercontent.com/goatcorp/PluginDistD17/main/{0}/{1}/images/{2}";
+    private const string MainRepoImageUrl = "https://raw.githubusercontent.com/dohwacorp/DalamudPlugins/api6/{0}/{1}/images/{2}";
+    private const string MainRepoDip17ImageUrl = "https://raw.githubusercontent.com/dohwacorp/PluginDistD17/main/{0}/{1}/images/{2}";
 
     [ServiceManager.ServiceDependency]
     private readonly HappyHttpClient happyHttpClient = Service<HappyHttpClient>.Get();
@@ -641,40 +641,52 @@ internal class PluginImageCache : IInternalDisposableService
 
     private string? GetPluginIconUrl(IPluginManifest manifest, bool isThirdParty, bool isTesting)
     {
-        if (isThirdParty)
-            return manifest.IconUrl;
-        
-        var fools = Service<Fools24>.Get();
-        if (Fools24.IsDayApplicable())
-        {
-            var iconLink = fools.GetHorseIconLink(manifest.InternalName);
-            if (iconLink != null)
-                return iconLink;
-        }
+        //if (isThirdParty)
+        //    return manifest.IconUrl;
 
-        return MainRepoDip17ImageUrl.Format(manifest.Dip17Channel!, manifest.InternalName, "icon.png");
+        //var fools = Service<Fools24>.Get();
+        //if (Fools24.IsDayApplicable())
+        //{
+        //    var iconLink = fools.GetHorseIconLink(manifest.InternalName);
+        //    if (iconLink != null)
+        //        return iconLink;
+        //}
+
+        //return MainRepoDip17ImageUrl.Format(manifest.Dip17Channel!, manifest.InternalName, "icon.png");
+
+        // 당장은 Dip17을 구현하지 못했으므로 manifest의 경로를 사용
+        return manifest.IconUrl;
     }
 
     private List<string?>? GetPluginImageUrls(IPluginManifest manifest, bool isThirdParty, bool isTesting)
     {
-        if (isThirdParty)
-        {
-            if (manifest.ImageUrls?.Count > 5)
-            {
-                Log.Warning($"Plugin {manifest.InternalName} has too many images");
-                return manifest.ImageUrls.Take(5).ToList();
-            }
+        //if (isThirdParty)
+        //{
+        //    if (manifest.ImageUrls?.Count > 5)
+        //    {
+        //        Log.Warning($"Plugin {manifest.InternalName} has too many images");
+        //        return manifest.ImageUrls.Take(5).ToList();
+        //    }
 
-            return manifest.ImageUrls;
+        //    return manifest.ImageUrls;
+        //}
+
+        //var output = new List<string>();
+        //for (var i = 1; i <= 5; i++)
+        //{
+        //    output.Add(MainRepoDip17ImageUrl.Format(manifest.Dip17Channel!, manifest.InternalName, $"image{i}.png"));
+        //}
+
+        //return output;
+
+        // 상기와 동일
+        if (manifest.ImageUrls?.Count > 5)
+        {
+            Log.Warning($"Plugin {manifest.InternalName} has too many images");
+            return manifest.ImageUrls.Take(5).ToList();
         }
 
-        var output = new List<string>();
-        for (var i = 1; i <= 5; i++)
-        {
-            output.Add(MainRepoDip17ImageUrl.Format(manifest.Dip17Channel!, manifest.InternalName, $"image{i}.png"));
-        }
-
-        return output;
+        return manifest.ImageUrls;
     }
 
     private FileInfo? GetPluginIconFileInfo(LocalPlugin? plugin)

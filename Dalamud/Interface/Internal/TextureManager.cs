@@ -124,6 +124,7 @@ internal class TextureManager : IInternalDisposableService, ITextureProvider, IT
             ClientLanguage.English => "en/",
             ClientLanguage.German => "de/",
             ClientLanguage.French => "fr/",
+            ClientLanguage.Korean => "ko/",
             _ => throw new ArgumentOutOfRangeException(nameof(language), $"Unknown Language: {language}"),
         };
         
