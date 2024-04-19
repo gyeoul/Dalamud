@@ -81,7 +81,7 @@ HRESULT InitializeClrAndGetEntryPoint(
         }
 
         std::filesystem::path fs_app_data(_appdata);
-        dotnet_path = _wcsdup(fs_app_data.append("XIVLauncherCN").append("runtime").c_str());
+        dotnet_path = _wcsdup(fs_app_data.append("XIVLauncher").append("runtime").c_str());
         
 
     }

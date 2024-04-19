@@ -108,7 +108,7 @@ public class BranchSwitcherWindow : Window
                 Service<DalamudConfiguration>.Get().ForceSave();
 
                 var appData = Service<Dalamud>.Get().StartInfo.WorkingDirectory;
-                var xlPath = Path.Combine(appData, "..", "..", "..", "..", "XIVLauncherCN.exe");
+                var xlPath = Path.Combine(appData, "..", "..", "..", "..", "XIVLauncher.exe");
 
                 if (File.Exists(xlPath))
                 {
