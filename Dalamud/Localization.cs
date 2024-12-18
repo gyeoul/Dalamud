@@ -18,7 +18,7 @@ public class Localization : IServiceType
     /// <summary>
     /// Array of language codes which have a valid translation in Dalamud.
     /// </summary>
-    public static readonly string[] ApplicableLangCodes = { "de", "ja", "fr", "it", "es", "zh" };
+    public static readonly string[] ApplicableLangCodes = ["ko", "de", "ja", "fr", "it", "es", "zh"];
 
     private const string FallbackLangCode = "en";
 

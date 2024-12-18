@@ -267,7 +267,7 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
 
     /// <inheritdoc/>
     public ExcelSheet<T>? GetExcelSheet<T>(ClientLanguage language) where T : ExcelRow 
-        => this.Excel.GetSheet<T>(ClientLanguage.ChineseSimplified.ToLumina());
+        => this.Excel.GetSheet<T>(language.ToLumina());
 
     /// <inheritdoc/>
     public FileResource? GetFile(string path) 

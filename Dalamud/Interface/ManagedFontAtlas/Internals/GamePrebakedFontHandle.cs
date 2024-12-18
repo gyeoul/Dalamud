@@ -1,4 +1,4 @@
-using System.Buffers;
+﻿using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -411,7 +411,7 @@ internal class GamePrebakedFontHandle : FontHandle
         private ImFontPtr CreateTemplateFont(IFontAtlasBuildToolkitPreBuild toolkitPreBuild, float sizePx)
         {
             var font = toolkitPreBuild.AddDalamudAssetFont(
-                DalamudAsset.NotoSansScMedium,
+                DalamudAsset.NotoSansKrRegular,
                 new()
                 {
                     GlyphRanges = new ushort[] { ' ', ' ', '\0' },

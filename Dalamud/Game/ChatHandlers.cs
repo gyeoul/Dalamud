@@ -30,8 +30,8 @@ internal class ChatHandlers : IServiceType
     private static readonly ModuleLog Log = new("CHATHANDLER");
 
     private readonly Regex rmtRegex = new(
-            @"没打开的[\dwW,]+收|登录领取.*福袋",
-            // @"4KGOLD|We have sufficient stock|VPK\.OM|Gil for free|www\.so9\.com|Fast & Convenient|Cheap & Safety Guarantee|【Code|A O A U E|igfans|4KGOLD\.COM|Cheapest Gil with|pvp and bank on google|Selling Cheap GIL|ff14mogstation\.com|Cheap Gil 1000k|gilsforyou|server 1000K =|gils_selling|E A S Y\.C O M|bonus code|mins delivery guarantee|Sell cheap|Salegm\.com|cheap Mog|Off Code:|FF14Mog.com|使用する5％オ|Off Code( *):|offers Fantasia",
+            // @"没打开的[\dwW,]+收|登录领取.*福袋",
+            @"4KGOLD|We have sufficient stock|VPK\.OM|Gil for free|www\.so9\.com|Fast & Convenient|Cheap & Safety Guarantee|【Code|A O A U E|igfans|4KGOLD\.COM|Cheapest Gil with|pvp and bank on google|Selling Cheap GIL|ff14mogstation\.com|Cheap Gil 1000k|gilsforyou|server 1000K =|gils_selling|E A S Y\.C O M|bonus code|mins delivery guarantee|Sell cheap|Salegm\.com|cheap Mog|Off Code:|FF14Mog.com|使用する5％オ|Off Code( *):|offers Fantasia",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private readonly Dictionary<ClientLanguage, Regex[]> retainerSaleRegexes = new()
@@ -72,6 +72,13 @@ internal class ChatHandlers : IServiceType
             {
                 new Regex(@"^在(?:.+)市场以(?<origValue>[\d,.]+)的价格出售的“(?<item>.+)”成功售出，获得了(?<value>[\d,.]+)金币。$", RegexOptions.Compiled),
             }
+        },
+        {
+            ClientLanguage.Korean,
+            [
+                new Regex(@"^(?:.+)장터에 (?<origValue>[\d,.]+)길에 출품한 (?<item>.*)[이가] 판매되어 (?<value>[\d,.]+)길을 획득했습니다.$", RegexOptions.Compiled),
+                new Regex(@"^(?:.+)장터에 (?<origValue>[\d,.]+)길에 출품한 (?<item>.*)×(?<count>[\d,.]+)개가 판매되어 (?<value>[\d,.]+)길을 획득했습니다.$", RegexOptions.Compiled)
+            ]
         },
     };
 

@@ -632,7 +632,7 @@ internal sealed partial class FontAtlasFactory
             if (this.data.ConfigData.Length == 0)
             {
                 this.AddDalamudAssetFont(
-                    DalamudAsset.NotoSansScMedium,
+                    DalamudAsset.NotoSansKrRegular,
                     new() { GlyphRanges = new ushort[] { ' ', ' ', '\0' }, SizePx = 1 });
             }
 
