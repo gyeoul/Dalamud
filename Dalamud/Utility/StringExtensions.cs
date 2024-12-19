@@ -41,8 +41,15 @@ public static class StringExtensions
     /// <returns>indicator if character is name is valid.</returns>
     public static bool IsValidCharacterName(this string value, bool includeLegacy = true)
     {
-        if (string.IsNullOrEmpty(value)) return false;
-        if (!UIGlobals.IsValidPlayerCharacterName(value)) return false;
-        return includeLegacy || value.Length <= 21;
+        unsafe
+        {
+            if (string.IsNullOrEmpty(value)) return false;
+            fixed (byte* bytePtr = System.Text.Encoding.ASCII.GetBytes(value))
+            {
+                if (!UIModule.IsPlayerCharacterName(bytePtr)) return false;
+            }
+
+            return includeLegacy || value.Length <= 21;
+        }
     }
 }
