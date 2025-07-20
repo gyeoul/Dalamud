@@ -46,22 +46,6 @@ jobs:
         run: .\sign.ps1 .\bin\Release
       - name: Create hashlist
         run: .\CreateHashList.ps1 .\bin\Release
-      - name: Generate version file
-        run: |
-          $version = Get-Content ".\bin\Release\TEMP_gitver.txt" -Raw
-          $version = $version.Trim()
-          $revision = Get-Content ".\bin\Release\revision.txt" -Raw
-          $revision = $revision.Trim()
-          $commit = Get-Content ".\bin\Release\commit_hash.txt" -Raw
-          $commit = $commit.Trim()
-          
-          $versionData = @{
-            AssemblyVersion = $version
-            GitSha = $commit
-            Revision = $revision
-            RuntimeVersion = "9.0.0"
-          }
-          $versionData | ConvertTo-Json -Compress | Out-File ".\bin\Release\version" -Encoding UTF8
       - name: Attest Build
         if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
         uses: actions/attest-build-provenance@v1
@@ -123,18 +107,23 @@ jobs:
 
   deploy_stg:
     name: Deploy dalamud-distrib staging
-    if: ${{ github.repository_owner == 'ReiwaTech' && github.event_name == 'push' }}
+    if: ${{ github.repository_owner == 'gyeoul' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
     needs: build
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
       with:
-        repository: ReiwaTech/dalamud-distrib
+        repository: gyeoul/dalamud-distrib
+        ref: main
         ssh-key: ${{ secrets.DEPLOY_SSH }}
     - uses: actions/download-artifact@v4.1.7
       with:
         name: dalamud-artifact
         path: .\scratch
+
+    - uses: geekyeggo/delete-artifact@v5
+      with:
+          name: dalamud-artifact
 
     - name: Extract branch name
       shell: bash
@@ -146,12 +135,25 @@ jobs:
       env:
         GH_BRANCH: ${{ steps.extract_branch.outputs.branch }}
       run: |
-        Compress-Archive .\scratch\* .\canary.zip  # Recreate the release zip
+        Write-Host "Remove useless files"
+        .\PruneDalamud.ps1
+
+        Write-Host "Create hashlist"
+        $hash = .\CreateHashList.ps1 .\scratch
+
+        Write-Host "Create 7z package"
+        7z a .\canary.7z .\scratch\* -t7z -mf=BCJ2 -mx=9
+
+        Compress-Archive -Force .\scratch\* .\canary.zip  # Recreate the release zip
 
         $branchName = $env:GH_BRANCH
 
         if ($branchName -eq "master") {
           $branchName = "stg"
+        }
+        else
+        {
+          $branchName = "canary"
         }
 
         $newVersion = [System.IO.File]::ReadAllText("$(Get-Location)\scratch\TEMP_gitver.txt")
@@ -164,8 +166,10 @@ jobs:
             $oldVersion = $versionData.AssemblyVersion
             if ($oldVersion -eq $newVersion) {
               Remove-Item .\canary.zip
+              Remove-Item .\canary.7z
             } else {
               Move-Item -Force ".\canary.zip" ".\${branchName}\latest.zip"
+              Move-Item -Force ".\canary.7z" ".\${branchName}\latest.7z"
               $versionData.AssemblyVersion = $newVersion
               $versionData | add-member -Force -Name "GitSha" $commitHash -MemberType NoteProperty
               $versionData | add-member -Force -Name "Revision" $revision -MemberType NoteProperty
@@ -176,13 +180,19 @@ jobs:
         } else {
             Write-Host "Deployment folder doesn't exist. Not doing anything."
             Remove-Item .\canary.zip
+            Remove-Item .\canary.7z
         }
 
     - name: Commit changes
       shell: bash
       env:
+        DEPLOY_SSH: ${{ secrets.DEPLOY_SSH }}
+        GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
         GH_BRANCH: ${{ steps.extract_branch.outputs.branch }}
       run: |
+        eval "$(ssh-agent -s)"
+        ssh-add - <<< "${DEPLOY_SSH}"
+
         git config --global user.name "Actions User"
         git config --global user.email "actions@github.com"
 
@@ -190,3 +200,6 @@ jobs:
         git commit -m "[CI] Update staging for ${DVER} on ${GH_BRANCH}" || true
 
         git push origin main || true
+
+    - name: Clear Web Services cache
+      run: curl -X POST --fail https://aonyx.ffxiv.wang/Dalamud/Release/ClearCache?key=${{ secrets.CACHE_CLEAR_KEY }}

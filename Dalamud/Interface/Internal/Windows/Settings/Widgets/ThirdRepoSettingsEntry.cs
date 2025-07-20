@@ -76,8 +76,8 @@ public class ThirdRepoSettingsEntry : SettingsEntry
         ImGuiHelpers.ScaledDummy(2);
 
         config.ThirdRepoSpeedbumpDismissed ??= config.ThirdRepoList.Any(x => x.IsEnabled);
-        var disclaimerDismissed = true || config.ThirdRepoSpeedbumpDismissed.Value;
-
+        var disclaimerDismissed = config.ThirdRepoSpeedbumpDismissed.Value;
+        
         ImGui.PushFont(InterfaceManager.IconFont);
         ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudOrange);
         ImGuiHelpers.SafeTextWrapped(FontAwesomeIcon.ExclamationTriangle.ToIconString());
@@ -147,7 +147,6 @@ public class ThirdRepoSettingsEntry : SettingsEntry
 
         ImGui.Separator();
 
-        /*
         ImGui.TextUnformatted("0");
         ImGui.NextColumn();
         ImGui.TextUnformatted("XIVLauncher");
@@ -155,7 +154,6 @@ public class ThirdRepoSettingsEntry : SettingsEntry
         ImGui.NextColumn();
         ImGui.NextColumn();
         ImGui.Separator();
-        */
 
         ThirdPartyRepoSettings repoToRemove = null;
 
