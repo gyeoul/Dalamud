@@ -23,7 +23,7 @@ public enum GameFontFamilyAndSize
     ///
     /// Contains Japanese characters in addition to Latin characters. Used in game for the whole UI.
     /// </summary>
-    [GameFontFamilyAndSize("common/font/KrnAXIS_120.fdt", "common/font/font_krn_{0}.tex", -1)]
+    [GameFontFamilyAndSize("common/font/AXIS_12.fdt", "common/font/font{0}.tex", -1)]
     Axis12,
 
     /// <summary>
@@ -31,7 +31,7 @@ public enum GameFontFamilyAndSize
     ///
     /// Contains Japanese characters in addition to Latin characters. Used in game for the whole UI.
     /// </summary>
-    [GameFontFamilyAndSize("common/font/KrnAXIS_140.fdt", "common/font/font_krn_{0}.tex", -1)]
+    [GameFontFamilyAndSize("common/font/AXIS_14.fdt", "common/font/font{0}.tex", -1)]
     Axis14,
 
     /// <summary>
@@ -39,7 +39,7 @@ public enum GameFontFamilyAndSize
     ///
     /// Contains Japanese characters in addition to Latin characters. Used in game for the whole UI.
     /// </summary>
-    [GameFontFamilyAndSize("common/font/KrnAXIS_180.fdt", "common/font/font_krn_{0}.tex", -1)]
+    [GameFontFamilyAndSize("common/font/AXIS_18.fdt", "common/font/font{0}.tex", -1)]
     Axis18,
 
     /// <summary>
@@ -47,8 +47,40 @@ public enum GameFontFamilyAndSize
     ///
     /// Contains Japanese characters in addition to Latin characters. Used in game for the whole UI.
     /// </summary>
-    [GameFontFamilyAndSize("common/font/KrnAXIS_360.fdt", "common/font/font_krn_{0}.tex", -4)]
+    [GameFontFamilyAndSize("common/font/AXIS_36.fdt", "common/font/font{0}.tex", -4)]
     Axis36,
+
+    /// <summary>
+    /// KRNAXIS(120pt)
+    ///
+    /// Contains Korean characters in addition to Latin characters. Used in game for the whole UI.
+    /// </summary>
+    [GameFontFamilyAndSize("common/font/KrnAXIS_120.fdt", "common/font/font_krn_{0}.tex", -1)]
+    KrnAxis120,
+
+    /// <summary>
+    /// KRNAXIS(140pt)
+    ///
+    /// Contains Korean characters in addition to Latin characters. Used in game for the whole UI.
+    /// </summary>
+    [GameFontFamilyAndSize("common/font/KrnAXIS_140.fdt", "common/font/font_krn_{0}.tex", -1)]
+    KrnAxis140,
+
+    /// <summary>
+    /// KRNAXIS(180pt)
+    ///
+    /// Contains Korean characters in addition to Latin characters. Used in game for the whole UI.
+    /// </summary>
+    [GameFontFamilyAndSize("common/font/KrnAXIS_180.fdt", "common/font/font_krn_{0}.tex", -1)]
+    KrnAxis180,
+
+    /// <summary>
+    /// KRNAXIS(360pt)
+    ///
+    /// Contains Korean characters in addition to Latin characters. Used in game for the whole UI.
+    /// </summary>
+    [GameFontFamilyAndSize("common/font/KrnAXIS_360.fdt", "common/font/font_krn_{0}.tex", -1)]
+    KrnAxis360,
 
     /// <summary>
     /// Jupiter (16pt)

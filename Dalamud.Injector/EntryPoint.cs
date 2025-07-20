@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,8 +12,6 @@ using System.Text.RegularExpressions;
 
 using Dalamud.Common;
 using Dalamud.Common.Game;
-
-using FfxivArgLauncher;
 using Dalamud.Common.Util;
 
 using Newtonsoft.Json;
@@ -68,10 +67,6 @@ namespace Dalamud.Injector
                 DalamudStartInfo startInfo = null;
                 if (args.Count == 1)
                 {
-#if !DEBUG
-                    Log.Error("You must provide at least one argument.");
-                    return 1;
-#endif
                     // No command defaults to inject
                     args.Add("inject");
                     args.Add("--all");
@@ -315,10 +310,10 @@ namespace Dalamud.Injector
             var logName = startInfo.LogName;
             var logPath = startInfo.LogPath;
             var languageStr = startInfo.Language.ToString().ToLowerInvariant();
+            languageStr = "korean";
             var platformStr = startInfo.Platform.ToString().ToLowerInvariant();
             var unhandledExceptionStr = startInfo.UnhandledException.ToString().ToLowerInvariant();
             var troubleshootingData = "{\"empty\": true, \"description\": \"No troubleshooting data supplied.\"}";
-            var launcherDirectory = startInfo.LauncherDirectory;
 
             // env vars are brought in prior to launch args, since args can override them.
             if (EnvironmentUtils.TryGetEnvironmentVariable("XL_PLATFORM", out var xlPlatformEnv))
@@ -370,10 +365,6 @@ namespace Dalamud.Injector
                 {
                     unhandledExceptionStr = args[i][key.Length..];
                 }
-                else if (args[i].StartsWith(key = "--launcher-directory="))
-                {
-                    launcherDirectory = args[i][key.Length..];
-                }
                 else
                 {
                     continue;
@@ -383,8 +374,8 @@ namespace Dalamud.Injector
                 i--;
             }
 
-            var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var xivlauncherDir = Path.Combine(appDataDir, "XIVLauncherKR");
+            var launcherDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var xivlauncherDir = Path.Combine(Path.GetDirectoryName(launcherDir), "XIVLauncher");
 
             workingDirectory ??= Directory.GetCurrentDirectory();
             configurationPath ??= Path.Combine(xivlauncherDir, "dalamudConfig.json");
@@ -469,7 +460,6 @@ namespace Dalamud.Injector
             startInfo.TroubleshootingPackData = troubleshootingData;
             startInfo.LogName = logName;
             startInfo.LogPath = logPath;
-            startInfo.LauncherDirectory = launcherDirectory;
 
             // TODO: XL should set --logpath to its roaming path. We are only doing this here until that's rolled out.
 #if DEBUG
@@ -575,7 +565,12 @@ namespace Dalamud.Injector
 
             for (var i = 2; i < args.Count; i++)
             {
-                if (int.TryParse(args[i], out int pid))
+                var isHex = args[i].StartsWith("0x");
+                if (int.TryParse(
+                    isHex ? args[i].Substring(2) : args[i],
+                    isHex ? NumberStyles.HexNumber : NumberStyles.Integer,
+                    NumberFormatInfo.CurrentInfo,
+                    out int pid))
                 {
                     targetProcessSpecified = true;
                     try
@@ -659,7 +654,18 @@ namespace Dalamud.Injector
             }
 
             foreach (var process in processes)
+            {
+                for (var j = 0; j < process.Modules.Count; j++)
+                {
+                    if (process.Modules[j].ModuleName == "Dalamud.dll")
+                    {
+                        goto next;
+                    }
+                }
+
                 Inject(process, AdjustStartInfo(dalamudStartInfo, process.MainModule.FileName), tryFixAcl);
+            next:;
+            }
 
             Log.CloseAndFlush();
             return 0;
@@ -805,10 +811,6 @@ namespace Dalamud.Injector
             {
                 dalamudStartInfo.LoadMethod = LoadMethod.DllInject;
             }
-            else if (mode.Length > 0 && mode.Length <= 6 && "inject"[0..mode.Length] == mode)
-            {
-                mode = "inject";
-            }
             else
             {
                 throw new CommandLineException($"\"{mode}\" is not a valid Dalamud load mode.");
@@ -821,7 +823,7 @@ namespace Dalamud.Injector
                     if (dalamudStartInfo.Platform == OSPlatform.Windows)
                     {
                         var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                        var xivlauncherDir = Path.Combine(appDataDir, "XIVLauncherKR");
+                        var xivlauncherDir = Path.Combine(appDataDir, "XIVLauncher");
                         var launcherConfigPath = Path.Combine(xivlauncherDir, "launcherConfigV3.json");
                         gamePath = Path.Combine(
                             JsonSerializer.CreateDefault()
@@ -932,9 +934,6 @@ namespace Dalamud.Injector
                 noFixAcl,
                 p =>
                 {
-                    var argFix = new ArgFixer(p);
-                    argFix.Fix();
-
                     if (!withoutDalamud && dalamudStartInfo.LoadMethod == LoadMethod.Entrypoint)
                     {
                         var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);

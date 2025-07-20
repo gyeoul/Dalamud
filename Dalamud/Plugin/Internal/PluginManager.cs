@@ -442,7 +442,7 @@ internal class PluginManager : IInternalDisposableService
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task SetPluginReposFromConfigAsync(bool notify)
     {
-        var repos = new List<PluginRepository> { this.MainRepo };
+        var repos = new List<PluginRepository> { /* this.MainRepo */ };
         repos.AddRange(this.configuration.ThirdRepoList
                            .Where(repo => repo.IsEnabled)
                            .Select(repo => new PluginRepository(this.happyHttpClient, repo.Url, repo.IsEnabled)));
@@ -1230,8 +1230,8 @@ internal class PluginManager : IInternalDisposableService
     {
         Debug.Assert(this.bannedPlugins != null, "this.bannedPlugins != null");
 
-        // if (this.LoadBannedPlugins)
-        //     return true;
+        if (this.LoadBannedPlugins)
+            return false;
 
         var config = Service<DalamudConfiguration>.Get();
 

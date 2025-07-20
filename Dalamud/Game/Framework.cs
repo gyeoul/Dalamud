@@ -366,7 +366,8 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             stopwatch.Stop();
 
             var key = $"{d.Target}::{d.Method.Name}";
-            this.NonUpdatedSubDelegates.Remove(key);
+            if (this.NonUpdatedSubDelegates.Contains(key))
+                this.NonUpdatedSubDelegates.Remove(key);
 
             AddToStats(key, stopwatch.Elapsed.TotalMilliseconds);
         }

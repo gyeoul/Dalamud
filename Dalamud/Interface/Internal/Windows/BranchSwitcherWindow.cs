@@ -40,6 +40,7 @@ public class BranchSwitcherWindow : Window
     /// <inheritdoc/>
     public override void OnOpen()
     {
+        if (false)
         Task.Run(async () =>
         {
             var client = Service<HappyHttpClient>.Get().SharedHttpClient;
@@ -61,6 +62,11 @@ public class BranchSwitcherWindow : Window
     /// <inheritdoc/>
     public override void Draw()
     {
+        if (true) {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "Not supported in this build");
+            return;
+        }
+
         if (this.branches == null)
         {
             ImGui.TextColored(ImGuiColors.DalamudGrey, "Loading branches...");
@@ -89,7 +95,7 @@ public class BranchSwitcherWindow : Window
             {
                 var config = Service<DalamudConfiguration>.Get();
                 config.DalamudBetaKind = pickedBranch.Key;
-                //config.DalamudBetaKey = pickedBranch.Value.Key;
+                config.DalamudBetaKey = pickedBranch.Value.Key;
                 config.QueueSave();
             }
 
@@ -108,8 +114,8 @@ public class BranchSwitcherWindow : Window
                 // If we exit immediately, we need to write out the new config now
                 Service<DalamudConfiguration>.Get().ForceSave();
 
-                var appData = Service<Dalamud>.Get().StartInfo.LauncherDirectory ?? string.Empty;
-                var xlPath = Path.Combine(appData, "XIVLauncher.exe");
+                var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                var xlPath = Path.Combine(appData, "XIVLauncher", "XIVLauncher.exe");
 
                 if (File.Exists(xlPath))
                 {

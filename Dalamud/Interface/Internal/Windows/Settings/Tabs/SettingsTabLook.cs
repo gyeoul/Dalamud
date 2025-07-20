@@ -274,8 +274,6 @@ public class SettingsTabLook : SettingsTab
                     this.defaultFontSpec =
                         new SingleFontSpec { FontId = new GameFontAndFamilyId(GameFontFamily.Axis) };
                 interfaceManager.RebuildFonts();
-                this.Save();
-
             }
         }
 

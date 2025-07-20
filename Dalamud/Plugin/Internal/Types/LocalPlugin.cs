@@ -103,7 +103,7 @@ internal class LocalPlugin : IAsyncDisposable
         }
 
         var pluginManager = Service<PluginManager>.Get();
-        this.IsBanned = pluginManager.IsManifestBanned(this.manifest); // && !this.IsDev;
+        this.IsBanned = pluginManager.IsManifestBanned(this.manifest) && !this.IsDev;
         this.BanReason = pluginManager.GetBanReason(this.manifest);
 
         if (needsSaveDueToLegacyFiles)
@@ -181,7 +181,7 @@ internal class LocalPlugin : IAsyncDisposable
     /// <summary>
     /// Gets a value indicating whether this plugin is orphaned(belongs to a repo) or not.
     /// </summary>
-    public bool IsOrphaned => !this.IsDev &&
+    public bool IsOrphaned => false && !this.IsDev &&
                               this.GetSourceRepository() == null;
 
     /// <summary>

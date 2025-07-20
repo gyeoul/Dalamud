@@ -60,7 +60,7 @@ internal static class EventHandlerExtensions
 
     /// <summary>
     /// Replacement for Invoke() on event Actions to catch exceptions that stop event propagation in case
-    /// of a thrown Exception inside an invocation.
+    /// of a thrown Exception inside of an invocation.
     /// </summary>
     /// <param name="act">The Action in question.</param>
     public static void InvokeSafely(this Action? act)
@@ -78,7 +78,13 @@ internal static class EventHandlerExtensions
         }
     }
 
-    /// <inheritdoc cref="InvokeSafely(Action)"/>
+    /// <summary>
+    /// Replacement for Invoke() on event Actions to catch exceptions that stop event propagation in case
+    /// of a thrown Exception inside of an invocation.
+    /// </summary>
+    /// <param name="act">The Action in question.</param>
+    /// <param name="argument">Templated argument for Action.</param>
+    /// <typeparam name="T">Type of Action args.</typeparam>
     public static void InvokeSafely<T>(this Action<T>? act, T argument)
     {
         foreach (var action in Delegate.EnumerateInvocationList(act))
@@ -112,7 +118,7 @@ internal static class EventHandlerExtensions
 
     /// <summary>
     /// Replacement for Invoke() on OnUpdateDelegate to catch exceptions that stop event propagation in case
-    /// of a thrown Exception inside an invocation.
+    /// of a thrown Exception inside of an invocation.
     /// </summary>
     /// <param name="updateDelegate">The OnUpdateDelegate in question.</param>
     /// <param name="framework">Framework to be passed on to OnUpdateDelegate.</param>
@@ -133,7 +139,7 @@ internal static class EventHandlerExtensions
 
     /// <summary>
     /// Replacement for Invoke() on OnMenuOpenedDelegate to catch exceptions that stop event propagation in case
-    /// of a thrown Exception inside an invocation.
+    /// of a thrown Exception inside of an invocation.
     /// </summary>
     /// <param name="openedDelegate">The OnMenuOpenedDelegate in question.</param>
     /// <param name="argument">Templated argument for Action.</param>
