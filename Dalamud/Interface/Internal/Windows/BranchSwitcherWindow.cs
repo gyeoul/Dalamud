@@ -10,6 +10,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Networking.Http;
+using Dalamud.Utility;
 
 using ImGuiNET;
 using Newtonsoft.Json;
@@ -21,7 +22,7 @@ namespace Dalamud.Interface.Internal.Windows;
 /// </summary>
 public class BranchSwitcherWindow : Window
 {
-    private const string BranchInfoUrl = "https://kamori.goats.dev/Dalamud/Release/Meta";
+    private const string BranchInfoUrl = ServerAddress.MainAddress + "/Dalamud/Release/Meta";
 
     private Dictionary<string, VersionEntry>? branches;
     private int selectedBranchIndex;
@@ -88,7 +89,7 @@ public class BranchSwitcherWindow : Window
             {
                 var config = Service<DalamudConfiguration>.Get();
                 config.DalamudBetaKind = pickedBranch.Key;
-                config.DalamudBetaKey = pickedBranch.Value.Key;
+                //config.DalamudBetaKey = pickedBranch.Value.Key;
                 config.QueueSave();
             }
 
@@ -107,8 +108,8 @@ public class BranchSwitcherWindow : Window
                 // If we exit immediately, we need to write out the new config now
                 Service<DalamudConfiguration>.Get().ForceSave();
 
-                var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                var xlPath = Path.Combine(appData, "XIVLauncher", "XIVLauncher.exe");
+                var appData = Service<Dalamud>.Get().StartInfo.LauncherDirectory ?? string.Empty;
+                var xlPath = Path.Combine(appData, "XIVLauncher.exe");
 
                 if (File.Exists(xlPath))
                 {

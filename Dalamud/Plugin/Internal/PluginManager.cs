@@ -1230,8 +1230,8 @@ internal class PluginManager : IInternalDisposableService
     {
         Debug.Assert(this.bannedPlugins != null, "this.bannedPlugins != null");
 
-        if (this.LoadBannedPlugins)
-            return false;
+        // if (this.LoadBannedPlugins)
+        //     return true;
 
         var config = Service<DalamudConfiguration>.Get();
 

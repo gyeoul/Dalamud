@@ -110,6 +110,9 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
         }
     }
 
+    /// <summary>
+    /// Gets the current game client language.
+    /// </summary>
     /// <inheritdoc/>
     public ClientLanguage Language { get; private set; }
 
@@ -130,15 +133,15 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
     #region Lumina Wrappers
 
     /// <inheritdoc/>
-    public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage? language = null, string? name = null) where T : struct, IExcelRow<T> 
-        => this.Excel.GetSheet<T>(language?.ToLumina(), name);
+    public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage? language = null, string? name = null) where T : struct, IExcelRow<T>
+        => this.Excel.GetSheet<T>(ClientLanguage.Korean.ToLumina(), name);
 
     /// <inheritdoc/>
     public SubrowExcelSheet<T> GetSubrowExcelSheet<T>(ClientLanguage? language = null, string? name = null) where T : struct, IExcelSubrow<T>
-        => this.Excel.GetSubrowSheet<T>(language?.ToLumina(), name);
+        => this.Excel.GetSubrowSheet<T>(ClientLanguage.Korean.ToLumina(), name);
 
     /// <inheritdoc/>
-    public FileResource? GetFile(string path) 
+    public FileResource? GetFile(string path)
         => this.GetFile<FileResource>(path);
 
     /// <inheritdoc/>
@@ -161,7 +164,7 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
             : Task.FromException<T>(new FileNotFoundException("The file could not be found."));
 
     /// <inheritdoc/>
-    public bool FileExists(string path) 
+    public bool FileExists(string path)
         => this.GameData.FileExists(path);
 
     #endregion

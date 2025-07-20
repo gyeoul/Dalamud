@@ -107,7 +107,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     private bool feedbackModalOnNextFrameDontClear = false;
     private string feedbackModalBody = string.Empty;
     private string feedbackModalContact = string.Empty;
-    private bool feedbackModalIncludeException = false;
+    private bool feedbackModalIncludeException = true;
     private IPluginManifest? feedbackPlugin = null;
     private bool feedbackIsTesting = false;
 
@@ -304,21 +304,21 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         this.profileManagerWidget.Reset();
 
-        var config = Service<DalamudConfiguration>.Get();
-        if (this.staleDalamudNewVersion == null && !config.DalamudBetaKind.IsNullOrEmpty())
-        {
-            Service<DalamudReleases>.Get().GetVersionForCurrentTrack().ContinueWith(t =>
-            {
-                if (!t.IsCompletedSuccessfully)
-                    return;
-
-                var versionInfo = t.Result;
-                if (versionInfo.AssemblyVersion != Util.GetScmVersion() &&
-                    versionInfo.Track != "release" &&
-                    string.Equals(versionInfo.Key, config.DalamudBetaKey, StringComparison.OrdinalIgnoreCase))
-                    this.staleDalamudNewVersion = versionInfo.AssemblyVersion;
-            });
-        }
+        // var config = Service<DalamudConfiguration>.Get();
+        // if (this.staleDalamudNewVersion == null && !config.DalamudBetaKind.IsNullOrEmpty())
+        // {
+        //     Service<DalamudReleases>.Get().GetVersionForCurrentTrack().ContinueWith(t =>
+        //     {
+        //         if (!t.IsCompletedSuccessfully)
+        //             return;
+        //
+        //         var versionInfo = t.Result;
+        //         if (versionInfo.AssemblyVersion != Util.GetScmVersion() &&
+        //             versionInfo.Track != "release" &&
+        //             string.Equals(versionInfo.Key, config.DalamudBetaKey, StringComparison.OrdinalIgnoreCase))
+        //             this.staleDalamudNewVersion = versionInfo.AssemblyVersion;
+        //     });
+        // }
     }
 
     /// <inheritdoc/>
@@ -1208,7 +1208,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 this.feedbackModalBody = string.Empty;
                 this.feedbackModalContact = Service<DalamudConfiguration>.Get().LastFeedbackContactDetails;
-                this.feedbackModalIncludeException = false;
+                this.feedbackModalIncludeException = true;
             }
             else
             {

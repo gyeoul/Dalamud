@@ -15,8 +15,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 /// </summary>
 internal class DalamudChangelogManager
 {
-    private const string DalamudChangelogUrl = "https://kamori.goats.dev/Dalamud/Release/Changelog";
-    private const string PluginChangelogUrl = "https://kamori.goats.dev/Plugin/History/{0}?track={1}";
+    private const string DalamudChangelogUrl = ServerAddress.MainAddress + "/Dalamud/Release/Changelog";
+    private const string PluginChangelogUrl = ServerAddress.MainAddress + "/Plugin/History/{0}?track={1}";
 
     private readonly PluginManager manager;
 

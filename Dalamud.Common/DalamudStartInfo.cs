@@ -57,7 +57,7 @@ public record DalamudStartInfo
     /// <summary>
     /// Gets or sets the language of the game client.
     /// </summary>
-    public ClientLanguage Language { get; set; } = ClientLanguage.English;
+    public ClientLanguage Language { get; set; } = ClientLanguage.Korean;
 
     /// <summary>
     /// Gets or sets the underlying platform�Dalamud runs on.
@@ -155,4 +155,6 @@ public record DalamudStartInfo
     /// Gets or sets a value indicating how to deal with unhandled exceptions.
     /// </summary>
     public UnhandledExceptionHandlingMode UnhandledException { get; set; }
+
+    public string? LauncherDirectory { get; set; }
 }

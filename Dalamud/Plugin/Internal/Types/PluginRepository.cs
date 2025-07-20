@@ -25,7 +25,7 @@ internal class PluginRepository
     /// <summary>
     /// The URL of the official main repository.
     /// </summary>
-    public const string MainRepoUrl = "https://kamori.goats.dev/Plugin/PluginMaster";
+    public const string MainRepoUrl = ServerAddress.MainAddress + "/Plugin/PluginMaster?apiLevel=12";
 
     private const int HttpRequestTimeoutSeconds = 20;
 
