@@ -19,6 +19,3 @@
 [submodule "lib/cimguizmo"]
 	path = lib/cimguizmo
 	url = https://github.com/goatcorp/gc-cimguizmo
-[submodule "lib/Lumina"]
-	path = lib/Lumina
-	url = https://github.com/ottercorp/Lumina/
