@@ -1,5 +1,8 @@
 name: Build Dalamud
-on: [push, pull_request, workflow_dispatch]
+on:
+  pull_request:
+    branches: [ kr-dist ]
+  workflow_dispatch:
 
 concurrency:
   group: build_dalamud_${{ github.ref_name }}
@@ -43,6 +46,22 @@ jobs:
         run: .\sign.ps1 .\bin\Release
       - name: Create hashlist
         run: .\CreateHashList.ps1 .\bin\Release
+      - name: Generate version file
+        run: |
+          $version = Get-Content ".\bin\Release\TEMP_gitver.txt" -Raw
+          $version = $version.Trim()
+          $revision = Get-Content ".\bin\Release\revision.txt" -Raw
+          $revision = $revision.Trim()
+          $commit = Get-Content ".\bin\Release\commit_hash.txt" -Raw
+          $commit = $commit.Trim()
+          
+          $versionData = @{
+            AssemblyVersion = $version
+            GitSha = $commit
+            Revision = $revision
+            RuntimeVersion = "9.0.0"
+          }
+          $versionData | ConvertTo-Json -Compress | Out-File ".\bin\Release\version" -Encoding UTF8
       - name: Attest Build
         if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
         uses: actions/attest-build-provenance@v1
